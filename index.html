@@ -63,6 +63,7 @@
   .result .note{font-size:13px;line-height:1.35}
   .send{display:block;width:100%;margin-top:11px;border:0;border-radius:12px;background:#fff;color:var(--brand-d);
     font-weight:800;font-size:15px;padding:13px;cursor:pointer}
+  .contact{display:block;width:100%;margin-top:8px;border:1.5px solid rgba(255,255,255,.75);border-radius:12px;background:transparent;color:#fff;font-weight:700;font-size:14px;padding:11px;cursor:pointer}
   .hint{color:var(--muted);font-size:11.5px;margin-top:6px}
 </style>
 </head>
@@ -84,24 +85,23 @@
       <div class="field"><label data-i="hei"></label><input id="H" type="number" inputmode="decimal" value="10" min="0"></div>
     </div>
     <div class="field"><label data-i="qty"></label><input id="Q" type="number" inputmode="numeric" value="500" min="1"></div>
-    <div class="badge" id="badge"><span class="dot"></span><div><b id="bRukav"></b> <span id="bCat"></span></div></div>
   </div>
 
   <div class="card">
     <h2 data-i="extra"></h2>
     <div class="opt">
       <div class="t" data-i="vpp"></div>
-      <div style="display:flex;align-items:center"><span class="px" id="pxVpp"></span>
+      <div style="display:flex;align-items:center">
       <label class="sw"><input type="checkbox" id="oVpp" onchange="calc()"><span class="sl"></span></label></div>
     </div>
     <div class="opt">
       <div class="t" data-i="mark"></div>
-      <div style="display:flex;align-items:center"><span class="px" id="pxMark"></span>
+      <div style="display:flex;align-items:center">
       <label class="sw"><input type="checkbox" id="oMark" onchange="calc()"><span class="sl"></span></label></div>
     </div>
     <div class="opt">
       <div class="t" data-i="spec"></div>
-      <div style="display:flex;align-items:center"><span class="px" id="pxSpec"></span>
+      <div style="display:flex;align-items:center">
       <label class="sw"><input type="checkbox" id="oSpec" onchange="calc()"><span class="sl"></span></label></div>
     </div>
   </div>
@@ -124,6 +124,7 @@ const CFG={
   storage:{free:24, mult:3, rate:{S:500,M:700}}
 };
 const LEAD_URL="https://script.google.com/macros/s/AKfycbywA4pS6pHGJqPYMf6BzQM2G0q44En0MhjhUgbwp_0fjRvE6_-JqgH989Vy5roaFqweiA/exec"; // <-- сюда вставьте URL веб-приложения Apps Script (см. инструкцию)
+const MANAGER="https://t.me/ScaleUp_service";
 const T={
   ru:{prod:"Параметры товара",len:"Длина, см",wid:"Ширина, см",hei:"Высота, см",qty:"Количество в партии, шт",
     extra:"Дополнительные услуги",vpp:"Защита в пупырчатую плёнку",mark:"Доп. маркировка",
@@ -133,7 +134,7 @@ const T={
     indiv:"Индивидуальный расчёт",indivCat:"макс. сторона > 40 см",
     perUnit:"Цена за единицу",storLine:"Хранение за единицу",batch:"Стоимость партии",
     indivNote:"Товар крупнее 40 см — рассчитаем индивидуально. Отправьте заявку, менеджер свяжется.",
-    send:"Отправить заявку",sendIndiv:"Отправить на расчёт",sum:"сум",sent:"Заявка отправлена ✅"},
+    send:"Отправить заявку",sendIndiv:"Отправить на расчёт",sum:"сум",sent:"Заявка отправлена ✅",contact:"Связаться с менеджером"},
   uz:{prod:"Mahsulot parametrlari",len:"Uzunligi, sm",wid:"Eni, sm",hei:"Balandligi, sm",qty:"Partiyadagi soni, dona",
     extra:"Qo‘shimcha xizmatlar",vpp:"Pufakchali plyonka bilan himoya",mark:"Qo‘shimcha markirovka",
     spec:"Maxsus markirovka",stor:"Saqlash",hours:"Olib ketishgacha soat",
@@ -142,7 +143,7 @@ const T={
     indiv:"Individual hisob-kitob",indivCat:"eng katta tomoni > 40 sm",
     perUnit:"Bir dona narxi",storLine:"Bir dona saqlash",batch:"Partiya narxi",
     indivNote:"Mahsulot 40 sm dan katta — individual hisoblaymiz. Buyurtma yuboring, menejer bog‘lanadi.",
-    send:"Buyurtma yuborish",sendIndiv:"Hisob-kitobga yuborish",sum:"so‘m",sent:"Buyurtma yuborildi ✅"}
+    send:"Buyurtma yuborish",sendIndiv:"Hisob-kitobga yuborish",sum:"so‘m",sent:"Buyurtma yuborildi ✅",contact:"Menejer bilan bog‘lanish"}
 };
 let lang="ru";
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
@@ -163,19 +164,10 @@ function calc(){
   const HR=Math.max(0,+$("HR").value||0);
   const maxSide=Math.max(L,W,H);
   const cat=category(maxSide);
-  // badge
-  const b=$("badge");
-  if(cat==="L"){b.classList.add("warn");$("bRukav").textContent=t.indiv;$("bCat").textContent="· "+t.indivCat;}
-  else{b.classList.remove("warn");$("bRukav").textContent=cat==="S"?t.r25:t.r50;$("bCat").textContent="· "+(cat==="S"?t.catS:t.catM);}
-  // addon price hints (use M if L for display)
-  const pc = cat==="L"?"M":cat;
-  $("pxVpp").textContent=fmt(CFG.addon.vpp[pc])+" "+t.sum;
-  $("pxMark").textContent=fmt(CFG.addon.mark[pc])+" "+t.sum;
-  $("pxSpec").textContent=fmt(CFG.addon.spec[pc])+" "+t.sum;
 
   const res=$("result");
   if(cat==="L"){
-    res.innerHTML='<div class="note">'+t.indivNote+'</div><button class="send" onclick="send()">'+t.sendIndiv+'</button>';
+    res.innerHTML='<div class="note">'+t.indivNote+'</div><button class="send" onclick="send()">'+t.sendIndiv+'</button><button class="contact" onclick="contact()">'+t.contact+'</button>';
     last={lang,L,W,H,qty:Q,hours:HR,maxSide,cat,rukav:t.indiv,individual:true};
     syncMain(t.sendIndiv);return;
   }
@@ -193,6 +185,7 @@ function calc(){
   if(storUnit>0)html+='<div class="liner"><span>'+t.storLine+'</span><span>'+fmt(storUnit)+' '+t.sum+'</span></div>';
   html+='<div class="total"><span class="lbl">'+t.batch+'</span><span class="val">'+fmt(batch)+' '+t.sum+'</span></div>';
   html+='<button class="send" onclick="send()">'+t.send+'</button>';
+  html+='<button class="contact" onclick="contact()">'+t.contact+'</button>';
   res.innerHTML=html;
   last={lang,L,W,H,qty:Q,hours:HR,maxSide,cat,rukav:cat==="S"?t.r25:t.r50,
     perUnit,storUnit,batch,addons:{vpp:$("oVpp").checked,mark:$("oMark").checked,spec:$("oSpec").checked},individual:false};
@@ -216,6 +209,7 @@ function buildText(){
   if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user){const u=tg.initDataUnsafe.user;s+="Клиент: "+(u.username?("@"+u.username):(u.first_name||""))+"\n";}
   return s;
 }
+function contact(){if(tg){tg.openTelegramLink(MANAGER);}else{window.open(MANAGER,"_blank");}}
 function send(){
   const t=T[lang];
   const payload=Object.assign({},last);
