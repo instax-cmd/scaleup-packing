@@ -123,6 +123,7 @@ const CFG={
   addon:{vpp:{S:810,M:1460}, mark:{S:240,M:250}, spec:{S:300,M:330}},
   storage:{free:24, mult:3, rate:{S:500,M:700}}
 };
+const LEAD_URL="https://script.google.com/macros/s/AKfycbywA4pS6pHGJqPYMf6BzQM2G0q44En0MhjhUgbwp_0fjRvE6_-JqgH989Vy5roaFqweiA/exec"; // <-- сюда вставьте URL веб-приложения Apps Script (см. инструкцию)
 const T={
   ru:{prod:"Параметры товара",len:"Длина, см",wid:"Ширина, см",hei:"Высота, см",qty:"Количество в партии, шт",
     extra:"Дополнительные услуги",vpp:"Защита в пупырчатую плёнку",mark:"Доп. маркировка",
@@ -217,9 +218,18 @@ function buildText(){
 }
 function send(){
   const t=T[lang];
+  const payload=Object.assign({},last);
+  if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user){payload.user=tg.initDataUnsafe.user;}
+  if(LEAD_URL){
+    try{
+      fetch(LEAD_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+      document.getElementById("result").innerHTML='<div class="note">'+t.sent+'</div>';
+      if(tg){setTimeout(function(){try{tg.close();}catch(e){}},1300);}
+      return;
+    }catch(e){}
+  }
   const url="https://t.me/share/url?url="+encodeURIComponent("ScaleUp packing")+"&text="+encodeURIComponent(buildText());
-  if(tg){tg.openTelegramLink(url);}
-  else{alert(buildText());}
+  if(tg){tg.openTelegramLink(url);}else{alert(buildText());}
 }
 ["L","W","H","Q","HR"].forEach(id=>$(id).addEventListener("input",calc));
 if(tg){try{tg.ready();tg.expand();tg.MainButton.onClick(send);}catch(e){}}
