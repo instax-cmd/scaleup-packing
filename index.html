@@ -43,9 +43,18 @@
   .sw input:checked + .sl:before{transform:translateX(19px)}
   .sub{margin-top:9px;font-size:12.5px;color:var(--brand-d);font-weight:600}
   .sub .warn{color:#c47d00}
+  .hint2{margin-top:5px;font-size:11.5px;color:#2e8b57;font-weight:600}
   .addbtn{width:100%;border:1.5px dashed var(--brand);border-radius:11px;background:rgba(0,107,198,.05);
     color:var(--brand);font-weight:700;font-size:14px;padding:11px;cursor:pointer}
   .hint{color:var(--muted);font-size:11.5px;margin-top:6px}
+  .info .infohead{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:600;font-size:13.5px;color:var(--text)}
+  .info .chev{color:var(--muted);transition:.15s}
+  .info.open .chev{transform:rotate(180deg)}
+  .inclist{list-style:none;margin:12px 0 0;padding:0}
+  .inclist li{position:relative;padding:4px 0 4px 22px;font-size:13px;color:var(--text)}
+  .inclist li:before{content:"✓";position:absolute;left:0;color:var(--brand);font-weight:800}
+  .eta{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .eta b{color:var(--brand-d)}
   .result{position:fixed;left:0;right:0;bottom:0;background:var(--brand);color:#fff;border-radius:18px 18px 0 0;
     padding:13px 16px calc(13px + env(safe-area-inset-bottom));box-shadow:0 -6px 22px rgba(0,0,0,.16);max-width:520px;margin:0 auto}
   .liner{display:flex;justify-content:space-between;font-size:13px;opacity:.92;margin-bottom:3px}
@@ -72,6 +81,7 @@
     <div class="field"><label data-i="hours"></label><input id="HR" type="number" inputmode="numeric" value="24" min="0"></div>
     <div class="hint" data-i="storHint"></div>
   </div>
+  <div class="card info"><div class="infohead" onclick="toggleInc()"><span data-i="incTitle"></span><span class="chev" id="chev">▾</span></div><div class="infobody" id="incBody" style="display:none"><ul class="inclist"><li data-i="inc1"></li><li data-i="inc2"></li><li data-i="inc3"></li><li data-i="inc4"></li></ul><div class="eta"><span data-i="eta"></span>: <b id="etaVal"></b></div></div></div>
 </div>
 <div class="result" id="result"></div>
 <script>
@@ -84,16 +94,16 @@ const MANAGER="https://t.me/ScaleUp_service";
 const T={
  ru:{itemsTitle:"Товары",pos:"Товар",len:"Длина, см",wid:"Ширина, см",hei:"Высота, см",qty:"Количество, шт",
    vpp:"Защита в пупырку (ВПП)",mark:"Доп. маркировка",spec:"Спецмаркировка",add:"+ Добавить товар",
-   stor:"Хранение",hours:"Часов до забора товара",storHint:"Первые 24 часа — бесплатно, далее платно за сутки.",
-   count:"Позиций",total:"Итого за партию",subPer:"Цена/ед",subTot:"Сумма",
+   stor:"Хранение",hours:"Часов до забора товара",storHint:"Первые 24 часа — бесплатно, далее платно за сутки.",incTitle:"Что входит в цену",inc1:"Приёмка и пересчёт партии",inc2:"Визуальная проверка товара",inc3:"Термоэтикетка (1 шт.)",inc4:"Упаковка в термоусадку (POF)",eta:"Ориентировочный срок готовности",etaDay:"в течение дня",eta12:"1–2 дня",eta24:"2–4 дня",etaBig:"от 4 дней (по согласованию)",
+   count:"Позиций",total:"Итого за партию",subPer:"Цена/ед",subTot:"Сумма",hintFrom:"Выгоднее от",hintPcs:"шт",perWord:"ед",hintBest:"Лучшая цена за тираж ✓",
    indiv:"Индивидуальный расчёт (>40 см)",someIndiv:"Часть товаров крупнее 40 см — рассчитаем индивидуально.",
-   send:"Отправить заявку",sent:"Заявка отправлена ✅",contact:"Связаться с менеджером",sum:"сум"},
+   send:"Отправить заявку",sent:"Заявка отправлена ✅",sentTitle:"Заявка отправлена ✅",sentBody:"Менеджер свяжется с вами в рабочее время. Спасибо за заявку!",close:"Закрыть",newCalc:"Новый расчёт",contact:"Связаться с менеджером",sum:"сум"},
  uz:{itemsTitle:"Mahsulotlar",pos:"Mahsulot",len:"Uzunligi, sm",wid:"Eni, sm",hei:"Balandligi, sm",qty:"Soni, dona",
    vpp:"Pufakchali plyonka (VPP)",mark:"Qo‘shimcha markirovka",spec:"Maxsus markirovka",add:"+ Mahsulot qo‘shish",
-   stor:"Saqlash",hours:"Olib ketishgacha soat",storHint:"Dastlabki 24 soat — bepul, keyin sutkasiga to‘lov.",
-   count:"Pozitsiyalar",total:"Partiya jami",subPer:"Dona narxi",subTot:"Summasi",
+   stor:"Saqlash",hours:"Olib ketishgacha soat",storHint:"Dastlabki 24 soat — bepul, keyin sutkasiga to‘lov.",incTitle:"Narxga nima kiradi",inc1:"Partiyani qabul qilish va sanash",inc2:"Mahsulotni vizual tekshirish",inc3:"Termoetiketka (1 dona)",inc4:"Termoplyonkaga (POF) qadoqlash",eta:"Taxminiy tayyorlik muddati",etaDay:"kun davomida",eta12:"1–2 kun",eta24:"2–4 kun",etaBig:"4 kundan (kelishuv bo‘yicha)",
+   count:"Pozitsiyalar",total:"Partiya jami",subPer:"Dona narxi",subTot:"Summasi",hintFrom:"Foydaliroq",hintPcs:"donadan",perWord:"dona",hintBest:"Eng yaxshi narx ✓",
    indiv:"Individual hisob-kitob (>40 sm)",someIndiv:"Ba’zi mahsulotlar 40 sm dan katta — individual hisoblaymiz.",
-   send:"Buyurtma yuborish",sent:"Buyurtma yuborildi ✅",contact:"Menejer bilan bog‘lanish",sum:"so‘m"}
+   send:"Buyurtma yuborish",sent:"Buyurtma yuborildi ✅",sentTitle:"Buyurtma yuborildi ✅",sentBody:"Menejer ish vaqtida siz bilan bog‘lanadi. Buyurtma uchun rahmat!",close:"Yopish",newCalc:"Yangi hisob",contact:"Menejer bilan bog‘lanish",sum:"so‘m"}
 };
 let lang="ru";
 const tg=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null;
@@ -122,7 +132,7 @@ function renderPositions(){
     h+='<div class="field"><label>'+t.wid+'</label><input type="number" inputmode="decimal" value="'+it.W+'" oninput="upd('+i+',\'W\',this.value)"></div>';
     h+='<div class="field"><label>'+t.hei+'</label><input type="number" inputmode="decimal" value="'+it.H+'" oninput="upd('+i+',\'H\',this.value)"></div>';
     h+='</div>';
-    h+='<div class="field"><label>'+t.qty+'</label><input type="number" inputmode="numeric" value="'+it.Q+'" oninput="upd('+i+',\'Q\',this.value)"></div>';
+    h+='<div class="field"><label>'+t.qty+'</label><input type="text" inputmode="numeric" value="'+(it.Q?fmt(it.Q):"")+'" oninput="qtyInput('+i+',this)"></div>';
     h+=optRow(i,"vpp",t.vpp)+optRow(i,"mark",t.mark)+optRow(i,"spec",t.spec);
     h+='<div class="sub" id="sub'+i+'"></div>';
     h+='</div>';
@@ -133,9 +143,15 @@ function optRow(i,key,label){
   return '<div class="opt"><div class="t">'+label+'</div><label class="sw"><input type="checkbox" '+(items[i][key]?"checked":"")+' onchange="upd('+i+',\''+key+'\',this.checked)"><span class="sl"></span></label></div>';
 }
 function upd(i,f,v){items[i][f]=v;calcAll();}
+function qtyInput(i,el){var raw=(el.value||"").replace(/\D/g,"");var n=raw?parseInt(raw,10):0;items[i].Q=n;el.value=n?fmt(n):"";calcAll();}
 function addItem(){items.push(newItem());renderPositions();calcAll();}
 function delItem(i){items.splice(i,1);if(!items.length)items.push(newItem());renderPositions();calcAll();}
 
+function nextTier(cat,Q,addSum){
+  const asc=[[1,1.30],[11,1.15],[100,1.00],[500,0.92],[1000,0.85],[5000,0.78]];
+  for(const x of asc){if(x[0]>Q){return {n:x[0],price:Math.round(CFG.anchor[cat]*x[1]/10)*10+addSum};}}
+  return null;
+}
 function calcItem(it,HR){
   const ms=Math.max(+it.L||0,+it.W||0,+it.H||0),c=category(ms),Q=Math.max(1,+it.Q||1);
   if(c==="L")return {cat:"L",individual:true};
@@ -144,15 +160,17 @@ function calcItem(it,HR){
   const per=base+a;
   const days=Math.max(0,Math.ceil((HR-CFG.storage.free)/24));
   const stor=days*CFG.storage.rate[c]*CFG.storage.mult;
-  return {cat:c,individual:false,perUnit:per,storUnit:stor,lineTotal:(per+stor)*Q};
+  return {cat:c,individual:false,perUnit:per,storUnit:stor,lineTotal:(per+stor)*Q,addSum:a};
 }
+function toggleInc(){var c=document.querySelector(".info");var b=document.getElementById("incBody");if(b.style.display==="none"){b.style.display="block";c.classList.add("open");}else{b.style.display="none";c.classList.remove("open");}}
+function readiness(total){var t=T[lang];if(total<=100)return t.etaDay;if(total<=1000)return t.eta12;if(total<=5000)return t.eta24;return t.etaBig;}
 function calcAll(){
   const t=T[lang];const HR=Math.max(0,+$("HR").value||0);
   let grand=0,anyIndiv=false;const payItems=[];
   items.forEach((it,i)=>{
     const r=calcItem(it,HR);const sub=$("sub"+i);
     if(r.individual){anyIndiv=true;if(sub)sub.innerHTML='<span class="warn">'+t.indiv+'</span>';}
-    else{grand+=r.lineTotal;if(sub)sub.textContent=t.subPer+": "+fmt(r.perUnit)+" "+t.sum+" · "+t.subTot+": "+fmt(r.lineTotal)+" "+t.sum;}
+    else{grand+=r.lineTotal;if(sub){var main=t.subPer+": "+fmt(r.perUnit)+" "+t.sum+" · "+t.subTot+": "+fmt(r.lineTotal)+" "+t.sum;var nt=nextTier(r.cat,Math.max(1,+it.Q||1),r.addSum);var hint=nt?(t.hintFrom+" "+nt.n+" "+t.hintPcs+" — "+fmt(nt.price)+" "+t.sum+"/"+t.perWord+" (−"+Math.round((r.perUnit-nt.price)/r.perUnit*100)+"%)"):t.hintBest;sub.innerHTML=main+'<div class="hint2">'+hint+'</div>';}}
     payItems.push({L:+it.L||0,W:+it.W||0,H:+it.H||0,qty:Math.max(1,+it.Q||1),cat:r.cat,
       individual:r.individual,perUnit:r.perUnit,storUnit:r.storUnit,lineTotal:r.lineTotal,
       addons:{vpp:!!it.vpp,mark:!!it.mark,spec:!!it.spec}});
@@ -164,6 +182,7 @@ function calcAll(){
   html+='<button class="contact" onclick="contact()">'+t.contact+'</button>';
   $("result").innerHTML=html;
   last={lang,hours:HR,items:payItems,totalQty:payItems.reduce((s,x)=>s+x.qty,0),grandTotal:grand,hasIndividual:anyIndiv};
+  var _et=document.getElementById("etaVal");if(_et)_et.textContent=readiness(last.totalQty);
   if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user)last.user=tg.initDataUnsafe.user;
 }
 function buildText(){
@@ -178,21 +197,26 @@ function buildText(){
   return s;
 }
 function contact(){if(tg){tg.openTelegramLink(MANAGER);}else{window.open(MANAGER,"_blank");}}
+function showSent(){var t=T[lang];document.getElementById("result").innerHTML='<div style="text-align:center;padding:2px 0"><div style="font-size:17px;font-weight:800;margin-bottom:5px">'+t.sentTitle+'</div><div class="note" style="opacity:.95">'+t.sentBody+'</div></div><button class="send" onclick="contact()">'+t.contact+'</button><button class="contact" onclick="closeApp()">'+(tg?t.close:t.newCalc)+'</button>';}
+function closeApp(){if(tg){try{tg.close();}catch(e){}}else{location.reload();}}
 function send(){
   const t=T[lang];
   if(LEAD_URL){
     try{
       fetch(LEAD_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(last)});
-      $("result").innerHTML='<div class="note">'+t.sent+'</div>';
-      if(tg){setTimeout(function(){try{tg.close();}catch(e){}},1300);}
-      return;
+      showSent();return;
     }catch(e){}
   }
   const url="https://t.me/share/url?url="+encodeURIComponent("ScaleUp packing")+"&text="+encodeURIComponent(buildText());
   if(tg){tg.openTelegramLink(url);}else{alert(buildText());}
 }
 $("HR").addEventListener("input",calcAll);
-if(tg){try{tg.ready();tg.expand();}catch(e){}}
+if(tg){try{tg.ready();tg.expand();}catch(e){}
+  try{var lc=(tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code||"").toLowerCase();if(lc.indexOf("uz")===0)lang="uz";}catch(e){}
+}
+document.getElementById("ru").classList.toggle("on",lang==="ru");
+document.getElementById("uz").classList.toggle("on",lang==="uz");
+document.documentElement.lang=lang;
 renderLabels();renderPositions();calcAll();
 </script>
 </body>
