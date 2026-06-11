@@ -21,6 +21,7 @@
   .lang button.on{background:var(--brand);color:#fff}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
   .card h2{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  .limitnote{font-size:12px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:12px;line-height:1.4}
   .pos{border:1px solid var(--line);border-radius:12px;padding:11px;margin-bottom:11px;background:var(--bg)}
   .poshead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
   .posname{font-weight:700;font-size:13.5px;color:var(--brand-d)}
@@ -73,6 +74,7 @@
   </header>
   <div class="card">
     <h2 data-i="itemsTitle"></h2>
+    <div class="limitnote" data-i="limit"></div>
     <div id="positions"></div>
     <button class="addbtn" data-i="add" onclick="addItem()"></button>
   </div>
@@ -92,13 +94,13 @@ const CFG={fit:{S:22,M:46},maxLen:null,anchor:{S:1530,M:2110},
 const LEAD_URL="https://script.google.com/macros/s/AKfycbywA4pS6pHGJqPYMf6BzQM2G0q44En0MhjhUgbwp_0fjRvE6_-JqgH989Vy5roaFqweiA/exec";
 const MANAGER="https://t.me/ScaleUp_service";
 const T={
- ru:{itemsTitle:"Товары",pos:"Товар",len:"Длина, см",wid:"Ширина, см",hei:"Высота, см",qty:"Количество, шт",
+ ru:{itemsTitle:"Товары",limit:"Пакуем товары, которые помещаются в рукав 50 см. Крупногабаритные не пакуем — калькулятор подскажет, если товар не подходит.",pos:"Товар",len:"Длина, см",wid:"Ширина, см",hei:"Высота, см",qty:"Количество, шт",
    vpp:"Защита в пупырку (ВПП)",mark:"Доп. маркировка",spec:"Спецмаркировка",add:"+ Добавить товар",
    stor:"Хранение",hours:"Часов до забора товара",storHint:"Первые 24 часа — бесплатно, далее платно за сутки.",incTitle:"Что входит в цену",inc1:"Приёмка и пересчёт партии",inc2:"Визуальная проверка товара",inc3:"Термоэтикетка (1 шт.)",inc4:"Упаковка в термоусадку (POF)",eta:"Ориентировочный срок готовности",etaDay:"в течение дня",eta12:"1–2 дня",eta24:"2–4 дня",etaBig:"от 4 дней (по согласованию)",
    count:"Позиций",total:"Итого за партию",subPer:"Цена/ед",subTot:"Сумма",hintFrom:"Выгоднее от",hintPcs:"шт",perWord:"ед",hintBest:"Лучшая цена за тираж ✓",
    noPack:"Не пакуем — больше размера рукава",someOver:"Часть товаров не помещается в рукав — их не пакуем.",nothingPack:"Эти товары мы не пакуем — превышают размер рукава.",
    send:"Отправить заявку",sent:"Заявка отправлена ✅",sentTitle:"Заявка отправлена ✅",sentBody:"Менеджер свяжется с вами в рабочее время. Спасибо за заявку!",close:"Закрыть",newCalc:"Новый расчёт",contact:"Связаться с менеджером",sum:"сум"},
- uz:{itemsTitle:"Mahsulotlar",pos:"Mahsulot",len:"Uzunligi, sm",wid:"Eni, sm",hei:"Balandligi, sm",qty:"Soni, dona",
+ uz:{itemsTitle:"Mahsulotlar",limit:"50 sm rukavga sig‘adigan mahsulotlarni qadoqlaymiz. Yirik gabaritlilarni qadoqlamaymiz — mos kelmasa, kalkulyator ogohlantiradi.",pos:"Mahsulot",len:"Uzunligi, sm",wid:"Eni, sm",hei:"Balandligi, sm",qty:"Soni, dona",
    vpp:"Pufakchali plyonka (VPP)",mark:"Qo‘shimcha markirovka",spec:"Maxsus markirovka",add:"+ Mahsulot qo‘shish",
    stor:"Saqlash",hours:"Olib ketishgacha soat",storHint:"Dastlabki 24 soat — bepul, keyin sutkasiga to‘lov.",incTitle:"Narxga nima kiradi",inc1:"Partiyani qabul qilish va sanash",inc2:"Mahsulotni vizual tekshirish",inc3:"Termoetiketka (1 dona)",inc4:"Termoplyonkaga (POF) qadoqlash",eta:"Taxminiy tayyorlik muddati",etaDay:"kun davomida",eta12:"1–2 kun",eta24:"2–4 kun",etaBig:"4 kundan (kelishuv bo‘yicha)",
    count:"Pozitsiyalar",total:"Partiya jami",subPer:"Dona narxi",subTot:"Summasi",hintFrom:"Foydaliroq",hintPcs:"donadan",perWord:"dona",hintBest:"Eng yaxshi narx ✓",
