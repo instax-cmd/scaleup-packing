@@ -85,7 +85,7 @@
 </div>
 <div class="result" id="result"></div>
 <script>
-const CFG={th:{S:25,M:40},anchor:{S:1530,M:2110},
+const CFG={fit:{S:22,M:46},maxLen:null,anchor:{S:1530,M:2110},
   tiers:[[5000,0.78],[1000,0.85],[500,0.92],[100,1.00],[11,1.15],[1,1.30]],
   addon:{vpp:{S:810,M:1460},mark:{S:240,M:250},spec:{S:300,M:330}},
   storage:{free:24,mult:3,rate:{S:500,M:700}}};
@@ -96,13 +96,13 @@ const T={
    vpp:"Защита в пупырку (ВПП)",mark:"Доп. маркировка",spec:"Спецмаркировка",add:"+ Добавить товар",
    stor:"Хранение",hours:"Часов до забора товара",storHint:"Первые 24 часа — бесплатно, далее платно за сутки.",incTitle:"Что входит в цену",inc1:"Приёмка и пересчёт партии",inc2:"Визуальная проверка товара",inc3:"Термоэтикетка (1 шт.)",inc4:"Упаковка в термоусадку (POF)",eta:"Ориентировочный срок готовности",etaDay:"в течение дня",eta12:"1–2 дня",eta24:"2–4 дня",etaBig:"от 4 дней (по согласованию)",
    count:"Позиций",total:"Итого за партию",subPer:"Цена/ед",subTot:"Сумма",hintFrom:"Выгоднее от",hintPcs:"шт",perWord:"ед",hintBest:"Лучшая цена за тираж ✓",
-   indiv:"Индивидуальный расчёт (>40 см)",someIndiv:"Часть товаров крупнее 40 см — рассчитаем индивидуально.",
+   noPack:"Не пакуем — больше размера рукава",someOver:"Часть товаров не помещается в рукав — их не пакуем.",nothingPack:"Эти товары мы не пакуем — превышают размер рукава.",
    send:"Отправить заявку",sent:"Заявка отправлена ✅",sentTitle:"Заявка отправлена ✅",sentBody:"Менеджер свяжется с вами в рабочее время. Спасибо за заявку!",close:"Закрыть",newCalc:"Новый расчёт",contact:"Связаться с менеджером",sum:"сум"},
  uz:{itemsTitle:"Mahsulotlar",pos:"Mahsulot",len:"Uzunligi, sm",wid:"Eni, sm",hei:"Balandligi, sm",qty:"Soni, dona",
    vpp:"Pufakchali plyonka (VPP)",mark:"Qo‘shimcha markirovka",spec:"Maxsus markirovka",add:"+ Mahsulot qo‘shish",
    stor:"Saqlash",hours:"Olib ketishgacha soat",storHint:"Dastlabki 24 soat — bepul, keyin sutkasiga to‘lov.",incTitle:"Narxga nima kiradi",inc1:"Partiyani qabul qilish va sanash",inc2:"Mahsulotni vizual tekshirish",inc3:"Termoetiketka (1 dona)",inc4:"Termoplyonkaga (POF) qadoqlash",eta:"Taxminiy tayyorlik muddati",etaDay:"kun davomida",eta12:"1–2 kun",eta24:"2–4 kun",etaBig:"4 kundan (kelishuv bo‘yicha)",
    count:"Pozitsiyalar",total:"Partiya jami",subPer:"Dona narxi",subTot:"Summasi",hintFrom:"Foydaliroq",hintPcs:"donadan",perWord:"dona",hintBest:"Eng yaxshi narx ✓",
-   indiv:"Individual hisob-kitob (>40 sm)",someIndiv:"Ba’zi mahsulotlar 40 sm dan katta — individual hisoblaymiz.",
+   noPack:"Qadoqlamaymiz — rukavdan katta",someOver:"Ba’zi mahsulotlar rukavga sig‘maydi — ularni qadoqlamaymiz.",nothingPack:"Bu mahsulotlarni qadoqlamaymiz — rukavdan katta.",
    send:"Buyurtma yuborish",sent:"Buyurtma yuborildi ✅",sentTitle:"Buyurtma yuborildi ✅",sentBody:"Menejer ish vaqtida siz bilan bog‘lanadi. Buyurtma uchun rahmat!",close:"Yopish",newCalc:"Yangi hisob",contact:"Menejer bilan bog‘lanish",sum:"so‘m"}
 };
 let lang="ru";
@@ -113,7 +113,7 @@ let items=[newItem()];
 let last={};
 function newItem(){return {L:10,W:10,H:10,Q:100,vpp:false,mark:false,spec:false};}
 function tierK(q){for(const x of CFG.tiers){if(q>=x[0])return x[1];}return 1.30;}
-function category(ms){if(ms<=CFG.th.S)return "S";if(ms<=CFG.th.M)return "M";return "L";}
+function fitCat(L,W,H){var a=+L||0,b=+W||0,c=+H||0,mx=Math.max(a,b,c),g=(a+b+c)-mx;if(CFG.maxLen&&mx>CFG.maxLen)return "X";if(g<=CFG.fit.S)return "S";if(g<=CFG.fit.M)return "M";return "X";}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
 
 function setLang(l){lang=l;$("ru").classList.toggle("on",l==="ru");$("uz").classList.toggle("on",l==="uz");
@@ -153,36 +153,36 @@ function nextTier(cat,Q,addSum){
   return null;
 }
 function calcItem(it,HR){
-  const ms=Math.max(+it.L||0,+it.W||0,+it.H||0),c=category(ms),Q=Math.max(1,+it.Q||1);
-  if(c==="L")return {cat:"L",individual:true};
+  const c=fitCat(it.L,it.W,it.H),Q=Math.max(1,+it.Q||1);
+  if(c==="X")return {cat:"X",oversize:true};
   const base=Math.round(CFG.anchor[c]*tierK(Q)/10)*10;
   let a=0;if(it.vpp)a+=CFG.addon.vpp[c];if(it.mark)a+=CFG.addon.mark[c];if(it.spec)a+=CFG.addon.spec[c];
   const per=base+a;
   const days=Math.max(0,Math.ceil((HR-CFG.storage.free)/24));
   const stor=days*CFG.storage.rate[c]*CFG.storage.mult;
-  return {cat:c,individual:false,perUnit:per,storUnit:stor,lineTotal:(per+stor)*Q,addSum:a};
+  return {cat:c,oversize:false,perUnit:per,storUnit:stor,lineTotal:(per+stor)*Q,addSum:a};
 }
 function toggleInc(){var c=document.querySelector(".info");var b=document.getElementById("incBody");if(b.style.display==="none"){b.style.display="block";c.classList.add("open");}else{b.style.display="none";c.classList.remove("open");}}
 function fixPad(){var r=document.getElementById("result"),w=document.querySelector(".wrap");if(r&&w)w.style.paddingBottom=(r.offsetHeight+24)+"px";}
 function readiness(total){var t=T[lang];if(total<=100)return t.etaDay;if(total<=1000)return t.eta12;if(total<=5000)return t.eta24;return t.etaBig;}
 function calcAll(){
   const t=T[lang];const HR=Math.max(0,+$("HR").value||0);
-  let grand=0,anyIndiv=false;const payItems=[];
+  let grand=0,anyOver=false,packQty=0;const payItems=[];
   items.forEach((it,i)=>{
     const r=calcItem(it,HR);const sub=$("sub"+i);
-    if(r.individual){anyIndiv=true;if(sub)sub.innerHTML='<span class="warn">'+t.indiv+'</span>';}
-    else{grand+=r.lineTotal;if(sub){var main=t.subPer+": "+fmt(r.perUnit)+" "+t.sum+" · "+t.subTot+": "+fmt(r.lineTotal)+" "+t.sum;var nt=nextTier(r.cat,Math.max(1,+it.Q||1),r.addSum);var hint=nt?(t.hintFrom+" "+nt.n+" "+t.hintPcs+" — "+fmt(nt.price)+" "+t.sum+"/"+t.perWord+" (−"+Math.round((r.perUnit-nt.price)/r.perUnit*100)+"%)"):t.hintBest;sub.innerHTML=main+'<div class="hint2">'+hint+'</div>';}}
+    if(r.oversize){anyOver=true;if(sub)sub.innerHTML='<span class="warn">'+t.noPack+'</span>';}
+    else{grand+=r.lineTotal;packQty+=Math.max(1,+it.Q||1);if(sub){var main=t.subPer+": "+fmt(r.perUnit)+" "+t.sum+" · "+t.subTot+": "+fmt(r.lineTotal)+" "+t.sum;var nt=nextTier(r.cat,Math.max(1,+it.Q||1),r.addSum);var hint=nt?(t.hintFrom+" "+nt.n+" "+t.hintPcs+" — "+fmt(nt.price)+" "+t.sum+"/"+t.perWord+" (−"+Math.round((r.perUnit-nt.price)/r.perUnit*100)+"%)"):t.hintBest;sub.innerHTML=main+'<div class="hint2">'+hint+'</div>';}}
     payItems.push({L:+it.L||0,W:+it.W||0,H:+it.H||0,qty:Math.max(1,+it.Q||1),cat:r.cat,
-      individual:r.individual,perUnit:r.perUnit,storUnit:r.storUnit,lineTotal:r.lineTotal,
+      oversize:r.oversize,rukav:(r.cat==="S"?"Рукав 25 см":r.cat==="M"?"Рукав 50 см":"—"),perUnit:r.perUnit,storUnit:r.storUnit,lineTotal:r.lineTotal,
       addons:{vpp:!!it.vpp,mark:!!it.mark,spec:!!it.spec}});
   });
   let html='<div class="liner"><span>'+t.count+'</span><span>'+items.length+'</span></div>';
-  if(anyIndiv)html+='<div class="note">'+t.someIndiv+'</div>';
+  if(anyOver)html+='<div class="note">'+t.someOver+'</div>';
   html+='<div class="total"><span class="lbl">'+t.total+'</span><span class="val">'+fmt(grand)+' '+t.sum+'</span></div>';
-  html+='<button class="send" onclick="send()">'+t.send+'</button>';
+  if(grand>0){html+='<button class="send" onclick="send()">'+t.send+'</button>';}else{html+='<div class="note">'+t.nothingPack+'</div>';}
   html+='<button class="contact" onclick="contact()">'+t.contact+'</button>';
   $("result").innerHTML=html;fixPad();
-  last={lang,hours:HR,items:payItems,totalQty:payItems.reduce((s,x)=>s+x.qty,0),grandTotal:grand,hasIndividual:anyIndiv};
+  last={lang,hours:HR,items:payItems,totalQty:packQty,grandTotal:grand,hasOversize:anyOver};
   var _et=document.getElementById("etaVal");if(_et)_et.textContent=readiness(last.totalQty);
   if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user)last.user=tg.initDataUnsafe.user;
 }
@@ -190,7 +190,7 @@ function buildText(){
   const t=T[lang];let s="ScaleUp packing — заявка\n";
   last.items.forEach((it,i)=>{
     s+=(i+1)+") "+it.L+"×"+it.W+"×"+it.H+" см, "+it.qty+" шт";
-    s+=it.individual?" → индивидуальный расчёт":(" → "+fmt(it.lineTotal)+" "+t.sum);
+    s+=it.oversize?" → не пакуем (больше рукава)":(" → "+fmt(it.lineTotal)+" "+t.sum);
     s+="\n";
   });
   s+="Хранение: "+last.hours+" ч\nИТОГО: "+fmt(last.grandTotal)+" "+t.sum+"\n";
