@@ -13,7 +13,7 @@
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.4}
-  .wrap{max-width:520px;margin:0 auto;padding:14px 14px 150px}
+  .wrap{max-width:520px;margin:0 auto;padding:14px 14px 210px}
   header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 14px}
   header img{height:34px;width:auto;flex:none;display:block;object-fit:contain}
   .lang{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card)}
@@ -163,6 +163,7 @@ function calcItem(it,HR){
   return {cat:c,individual:false,perUnit:per,storUnit:stor,lineTotal:(per+stor)*Q,addSum:a};
 }
 function toggleInc(){var c=document.querySelector(".info");var b=document.getElementById("incBody");if(b.style.display==="none"){b.style.display="block";c.classList.add("open");}else{b.style.display="none";c.classList.remove("open");}}
+function fixPad(){var r=document.getElementById("result"),w=document.querySelector(".wrap");if(r&&w)w.style.paddingBottom=(r.offsetHeight+24)+"px";}
 function readiness(total){var t=T[lang];if(total<=100)return t.etaDay;if(total<=1000)return t.eta12;if(total<=5000)return t.eta24;return t.etaBig;}
 function calcAll(){
   const t=T[lang];const HR=Math.max(0,+$("HR").value||0);
@@ -180,7 +181,7 @@ function calcAll(){
   html+='<div class="total"><span class="lbl">'+t.total+'</span><span class="val">'+fmt(grand)+' '+t.sum+'</span></div>';
   html+='<button class="send" onclick="send()">'+t.send+'</button>';
   html+='<button class="contact" onclick="contact()">'+t.contact+'</button>';
-  $("result").innerHTML=html;
+  $("result").innerHTML=html;fixPad();
   last={lang,hours:HR,items:payItems,totalQty:payItems.reduce((s,x)=>s+x.qty,0),grandTotal:grand,hasIndividual:anyIndiv};
   var _et=document.getElementById("etaVal");if(_et)_et.textContent=readiness(last.totalQty);
   if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user)last.user=tg.initDataUnsafe.user;
@@ -197,7 +198,7 @@ function buildText(){
   return s;
 }
 function contact(){if(tg){tg.openTelegramLink(MANAGER);}else{window.open(MANAGER,"_blank");}}
-function showSent(){var t=T[lang];document.getElementById("result").innerHTML='<div style="text-align:center;padding:2px 0"><div style="font-size:17px;font-weight:800;margin-bottom:5px">'+t.sentTitle+'</div><div class="note" style="opacity:.95">'+t.sentBody+'</div></div><button class="send" onclick="contact()">'+t.contact+'</button><button class="contact" onclick="closeApp()">'+(tg?t.close:t.newCalc)+'</button>';}
+function showSent(){var t=T[lang];document.getElementById("result").innerHTML='<div style="text-align:center;padding:2px 0"><div style="font-size:17px;font-weight:800;margin-bottom:5px">'+t.sentTitle+'</div><div class="note" style="opacity:.95">'+t.sentBody+'</div></div><button class="send" onclick="contact()">'+t.contact+'</button><button class="contact" onclick="closeApp()">'+(tg?t.close:t.newCalc)+'</button>';fixPad();}
 function closeApp(){if(tg){try{tg.close();}catch(e){}}else{location.reload();}}
 function send(){
   const t=T[lang];
@@ -211,6 +212,7 @@ function send(){
   if(tg){tg.openTelegramLink(url);}else{alert(buildText());}
 }
 $("HR").addEventListener("input",calcAll);
+window.addEventListener("resize",fixPad);
 if(tg){try{tg.ready();tg.expand();}catch(e){}
   try{var lc=(tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code||"").toLowerCase();if(lc.indexOf("uz")===0)lang="uz";}catch(e){}
 }
